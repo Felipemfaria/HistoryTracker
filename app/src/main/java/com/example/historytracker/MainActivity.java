@@ -1,5 +1,6 @@
 package com.example.historytracker;
 
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import com.google.ar.sceneform.rendering.ExternalTexture;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 
+import java.io.IOException;
 import java.util.Collection;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
         texture = new ExternalTexture();
 
-        mediaPlayer = MediaPlayer.create(this, R.raw.video);
+        //mediaPlayer = MediaPlayer.create(this, R.raw.video);
+        mediaPlayer = new MediaPlayer();
         mediaPlayer.setSurface(texture.getSurface());
         mediaPlayer.setLooping(true);
 
@@ -69,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
         for (AugmentedImage image : augmentedImages){
             if(image.getTrackingState() == TrackingState.TRACKING){
-                if(image.getName().equals("image"));{
+                if(image.getName().equals("image")){
                     isImageDetected = true;
 
                     playVideo(image.createAnchor(image.getCenterPose()), image.getExtentX(), image.getExtentZ());
@@ -81,19 +84,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void playVideo(Anchor anchor, float extentX, float extentZ) {
+        try {
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setSurface(texture.getSurface());
+            mediaPlayer.setLooping(true);
 
-        mediaPlayer.start();
+            String url = "https://www.youtube.com/watch?v=cbm5szuvRyM";
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayer.setDataSource(url);
+            mediaPlayer.prepareAsync(); // might take long! (for buffering, etc)
+            mediaPlayer.start();
 
-        AnchorNode anchorNode = new AnchorNode(anchor);
+            AnchorNode anchorNode = new AnchorNode(anchor);
 
-        texture.getSurfaceTexture().setOnFrameAvailableListener(surfaceTexture -> {
-            anchorNode.setRenderable(renderable);
-            texture.getSurfaceTexture().setOnFrameAvailableListener(null);
-        });
+            texture.getSurfaceTexture().setOnFrameAvailableListener(surfaceTexture -> {
+                anchorNode.setRenderable(renderable);
+                texture.getSurfaceTexture().setOnFrameAvailableListener(null);
+            });
 
-        anchorNode.setWorldScale(new Vector3(extentX, 1f, extentZ));
+            anchorNode.setWorldScale(new Vector3(extentX, 1f, extentZ));
 
-        scene.addChild(anchorNode);
+            scene.addChild(anchorNode);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    @Override
+    protected void onPause() {
+        mediaPlayer = null;
+        super.onPause();
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+    }
 }

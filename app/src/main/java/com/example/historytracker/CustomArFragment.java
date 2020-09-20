@@ -22,16 +22,19 @@ public class CustomArFragment extends ArFragment {
         Config config = new Config(session).setPlaneFindingMode(Config.PlaneFindingMode.DISABLED);
         config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
         config.setFocusMode(Config.FocusMode.AUTO);
+        try {
+            AugmentedImageDatabase aid = new AugmentedImageDatabase(session);
 
-        AugmentedImageDatabase aid = new AugmentedImageDatabase(session);
+            Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.image);
+            aid.addImage("image", image);
 
-        Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.image);
-        aid.addImage("image", image);
+            config.setAugmentedImageDatabase(aid);
 
-        config.setAugmentedImageDatabase(aid);
+            this.getArSceneView().setupSession(session);
 
-        this.getArSceneView().setupSession(session);
-
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
         return config;
     }
 
